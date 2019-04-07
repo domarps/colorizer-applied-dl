@@ -2,6 +2,7 @@ from keras.layers import Input, Dense, Flatten, Reshape, Conv2D, UpSampling2D, M
 from keras.models import Model, Sequential
 from keras.datasets import mnist
 from keras.callbacks import Callback
+from keras.optimizers import Adam
 import random
 import glob
 import wandb
@@ -17,8 +18,8 @@ from skimage import io, color
 run = wandb.init(project='colorizer-applied-dl')
 config = run.config
 
-config.num_epochs = 1
-config.batch_size = 4
+config.num_epochs = 1000
+config.batch_size = 128
 config.img_dir = "images"
 config.height = 256
 config.width = 256
@@ -66,7 +67,11 @@ def perceptual_distance(y_true, y_pred):
     
     return K.mean(K.sqrt((((512+rmean)*r*r)/256) + 4*g*g + (((767-rmean)*b*b)/256)));
 
-model.compile(optimizer='adam', loss='mse', metrics=[perceptual_distance])
+
+adam = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
+model.compile(optimizer=adam, loss='mse', metrics=[perceptual_distance])
+
+
 
 (val_bw_images, val_color_images) = next(my_generator(145, val_dir))
 
