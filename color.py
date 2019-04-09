@@ -1,8 +1,9 @@
-from keras.layers import Input, Dense, Flatten, Reshape, Conv2D, UpSampling2D, MaxPooling2D
+from keras.layers import Input, Dense, Flatten, Reshape, Conv2D, UpSampling2D, MaxPooling2D, BatchNormalization
 from keras.models import Model, Sequential
 from keras.datasets import mnist
 from keras.callbacks import Callback
 from keras.optimizers import Adam
+from keras import applications
 import random
 import glob
 import wandb
@@ -19,7 +20,7 @@ run = wandb.init(project='colorizer-applied-dl')
 config = run.config
 
 config.num_epochs = 1000
-config.batch_size = 128
+config.batch_size = 32
 config.img_dir = "images"
 config.height = 256
 config.width = 256
@@ -55,9 +56,14 @@ model = Sequential()
 model.add(Reshape((config.height,config.width,1), input_shape=(config.height,config.width)))
 model.add(Conv2D(32, (3, 3), activation='relu', padding='same'))
 model.add(MaxPooling2D(2,2))
-model.add(Conv2D(32, (3, 3), activation='relu', padding='same'))
+model.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
+model.add(MaxPooling2D(2,2))
+model.add(Conv2D(128, (3, 3), activation='relu', padding='same'))
+model.add(UpSampling2D((2, 2)))
+model.add(Conv2D(128, (3, 3), activation='relu', padding='same'))
 model.add(UpSampling2D((2, 2)))
 model.add(Conv2D(3, (3, 3), activation='relu', padding='same'))
+
 
 def perceptual_distance(y_true, y_pred):
     rmean = ( y_true[:,:,:,0] + y_pred[:,:,:,0] ) / 2;
